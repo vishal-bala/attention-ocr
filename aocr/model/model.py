@@ -227,7 +227,7 @@ class Model(object):
                 self.summaries_by_bucket = []
 
                 params = tf.trainable_variables()
-                opt = tf.train.AdadeltaOptimizer(learning_rate=initial_learning_rate)
+                opt = tf.train.AdamOptimizer()
                 loss_op = self.attention_decoder_model.loss
 
                 if self.reg_val > 0:
