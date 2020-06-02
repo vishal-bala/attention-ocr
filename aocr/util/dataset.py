@@ -49,9 +49,9 @@ def generate(annotations_path, output_path, log_step=5000,
 
             feature = {}
             feature['image'] = _bytes_feature(img)
-            feature['label'] = _bytes_feature(b(label))
+            feature['label'] = _bytes_feature(label.encode('UTF-8'))
             if save_filename:
-                feature['comment'] = _bytes_feature(b(img_path))
+                feature['comment'] = _bytes_feature(img_path.encode('UTF-8'))
 
             example = tf.train.Example(features=tf.train.Features(feature=feature))
 

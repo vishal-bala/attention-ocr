@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 import sys
+from warnings import warn
 
 import numpy as np
 import tensorflow as tf
@@ -25,6 +26,19 @@ class DataGen(object):
     @staticmethod
     def set_full_ascii_charmap():
         DataGen.CHARMAP = ['', '', ''] + [chr(i) for i in range(32, 127)]
+        DataGen.CHARMAP += ['ä', 'ü', 'ö', 'Ä', 'Ü', 'Ö', 'ß',
+                            'è', 'È', 'é', 'É', 'á', 'Á', 'à',
+                            'À', 'ó', 'Ó', 'ò', 'Ò', 'ï', 'Ï',
+                            'â', 'Â', 'ê', 'Ê', 'ô', 'Ô', 'û',
+                            'Û', '€', '£', 'ë']
+
+        # We explicitly remove characters that never show up in our training data (so far)
+        for char in (
+                'Á', '%', '{', 'Ó', 'Ê', 'Ï', 'á', 'â', '=', '^', 'À', 'ï', 'à', 'è', '<', '"', 'é', 'È', '#',
+                '~', 'Ô', 'ó', '`', '[', 'Ü', '}', 'Â', 'ô', 'Û', ']', 'É', '\\', 'Ö', '>', 'û', '*', 'Ò',
+                'ê', '|', 'ò'
+        ):
+            DataGen.CHARMAP.remove(char)
 
     def __init__(self,
                  annotation_fn,
@@ -68,7 +82,11 @@ class DataGen(object):
                     for img, lex, comment in zip(raw_images, raw_labels, raw_comments):
 
                         if self.max_width and (Image.open(IO(img)).size[0] <= self.max_width):
-                            word = self.convert_lex(lex)
+
+                            try:
+                                word = self.convert_lex(lex)
+                            except IndexError as e:
+                                raise ValueError("Failed to convert lexicon for {!r}".format(comment)) from e
 
                             bucket_size = self.bucket_data.append(img, word, lex, comment)
                             if bucket_size >= batch_size:
@@ -77,6 +95,9 @@ class DataGen(object):
                                     go_shift=1)
                                 yield bucket
 
+                        else:
+                            warn("Ignoring {!r} due to size".format(comment))
+
                 except tf.errors.OutOfRangeError:
                     break
 
@@ -84,13 +105,14 @@ class DataGen(object):
 
     def convert_lex(self, lex):
         if sys.version_info >= (3,):
-            lex = lex.decode('iso-8859-1')
+            lex = lex.decode('UTF-8') #lex.decode('iso-8859-1')
 
         assert len(lex) < self.bucket_specs[-1][1]
 
         return np.array(
             [self.GO_ID] + [self.CHARMAP.index(char) for char in lex] + [self.EOS_ID],
-            dtype=np.int32)
+            dtype=np.int32
+        )
 
     @staticmethod
     def _parse_record(example_proto):
