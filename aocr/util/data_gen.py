@@ -37,7 +37,7 @@ class DataGen(object):
         for char in (
                 '%', '{', '=', '^', '<', '"', '#', '~', '`', '[', '}', ']', '\\', '>', '*', '|',
                 'ä', 'ü', 'ö', 'Ä', 'Ü', 'Ö', 'ß', 'ï', 'Ï', 'â', 'Â', 'ê', 'Ê', 'ô', 'Ô', 'û',
-                'Û', '£', 'ë',
+                'Û', 'ë',
         ):
             DataGen.CHARMAP.remove(char)
 
@@ -106,7 +106,7 @@ class DataGen(object):
 
     def convert_lex(self, lex):
         if sys.version_info >= (3,):
-            lex = lex.decode('UTF-8') #lex.decode('iso-8859-1')
+            lex = lex.decode('UTF-8')  # lex.decode('iso-8859-1')
 
         assert len(lex) < self.bucket_specs[-1][1]
 
