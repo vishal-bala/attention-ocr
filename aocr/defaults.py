@@ -44,6 +44,7 @@ class Config(object):
     MAX_WIDTH = 160
     MAX_HEIGHT = 60
     MAX_PREDICTION = 8
+    DATA_AUGMENTATION_PROB = 0.9
 
     USE_DISTANCE = True
 

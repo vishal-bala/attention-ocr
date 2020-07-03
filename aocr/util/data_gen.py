@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import random
 import sys
 from warnings import warn
 
@@ -10,6 +11,16 @@ from PIL import Image
 from six import BytesIO as IO
 
 from .bucketdata import BucketData
+from .data_augmentation import (
+    add_random_padding,
+    add_random_lines,
+    crop_image,
+    modify_brightness,
+    modify_contrast,
+    modify_sharpness,
+    random_resize,
+    random_rotation,
+)
 
 try:
     TFRecordDataset = tf.data.TFRecordDataset  # pylint: disable=invalid-name
@@ -44,7 +55,8 @@ class DataGen(object):
                  annotation_fn,
                  buckets,
                  epochs=1000,
-                 max_width=None):
+                 max_width=None,
+                 augment_data_prob=0.0):
         """
         :param annotation_fn:
         :param lexicon_fn:
@@ -52,10 +64,13 @@ class DataGen(object):
         :param img_width_range: only needed for training set
         :param word_len:
         :param epochs:
+        :param augment_data_prob: probability of applying data augmentation functions on the sample
         :return:
         """
+
         self.epochs = epochs
         self.max_width = max_width
+        self.augment_data_prob = augment_data_prob
 
         self.bucket_specs = buckets
         self.bucket_data = BucketData()
@@ -81,22 +96,39 @@ class DataGen(object):
                     raw_images, raw_labels, raw_comments = sess.run([images, labels, comments])
                     for img, lex, comment in zip(raw_images, raw_labels, raw_comments):
 
-                        if self.max_width and (Image.open(IO(img)).size[0] <= self.max_width):
+                        # Augment specified percentage of data
+                        if random.random() < self.augment_data_prob:
 
-                            try:
-                                word = self.convert_lex(lex)
-                            except IndexError as e:
-                                raise ValueError("Failed to convert lexicon for {!r}".format(comment)) from e
+                            # Convert images encoded as bytes to PIL.Image
+                            img = Image.open(IO(img))
 
-                            bucket_size = self.bucket_data.append(img, word, lex, comment)
-                            if bucket_size >= batch_size:
-                                bucket = self.bucket_data.flush_out(
-                                    self.bucket_specs,
-                                    go_shift=1)
-                                yield bucket
+                            # Perform augmentation
+                            img = random_resize(img, max_width=self.max_width)
+                            img = modify_sharpness(img)
+                            img = modify_contrast(img)
+                            img = modify_brightness(img)
+                            img = add_random_padding(img)
+                            img = crop_image(img)
+                            img = add_random_lines(img)
+                            img = random_rotation(img)
 
-                        else:
-                            warn("Ignoring {!r} due to size".format(comment))
+                            # Convert images back to bytes
+                            iobytes = IO()
+                            img.save(iobytes, 'JPEG')
+                            img = iobytes.getvalue()
+
+                        try:
+                            word = self.convert_lex(lex)
+                        except IndexError as e:
+                            raise ValueError("Failed to convert lexicon for {!r}".format(comment)) from e
+
+                        bucket_size = self.bucket_data.append(img, word, lex, comment)
+
+                        if bucket_size >= batch_size:
+                            bucket = self.bucket_data.flush_out(
+                                self.bucket_specs,
+                                go_shift=1)
+                            yield bucket
 
                 except tf.errors.OutOfRangeError:
                     break

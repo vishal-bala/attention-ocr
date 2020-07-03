@@ -182,7 +182,8 @@ gcloud ml-engine jobs submit training $JOB_NAME \
     train $GS_BUCKET/$DATASET_UPLOAD_PATH \
     --steps-per-checkpoint=500 \
     --batch-size=512 \
-    --num-epoch=20
+    --num-epoch=20 \
+    --data-augmentation-prob=0.9
 ```
 
 ## Parameters
@@ -216,6 +217,7 @@ gcloud ml-engine jobs submit training $JOB_NAME \
 * `max-width`: Maximum width for the input images. WARNING: images with the width higher than maximum will be discarded.
 * `max-height`: Maximum height for the input images.
 * `max-prediction`: Maximum length of the predicted word/phrase.
+* `data-augmentation-prob`: Probability of applying augmentation functions to the each sample
 
 ## References
 
