@@ -217,7 +217,7 @@ gcloud ml-engine jobs submit training $JOB_NAME \
 * `max-width`: Maximum width for the input images. WARNING: images with the width higher than maximum will be discarded.
 * `max-height`: Maximum height for the input images.
 * `max-prediction`: Maximum length of the predicted word/phrase.
-* `data-augmentation-prob`: Probability of applying augmentation functions to the each sample
+* `data-augmentation-prob`: Probability of applying augmentation functions to each sample
 
 ## References
 

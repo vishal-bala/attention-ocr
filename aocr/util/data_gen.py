@@ -54,9 +54,9 @@ class DataGen(object):
     def __init__(self,
                  annotation_fn,
                  buckets,
+                 augment_data_prob=0.0,
                  epochs=1000,
-                 max_width=None,
-                 augment_data_prob=0.0):
+                 max_width=None):
         """
         :param annotation_fn:
         :param lexicon_fn:
@@ -67,7 +67,6 @@ class DataGen(object):
         :param augment_data_prob: probability of applying data augmentation functions on the sample
         :return:
         """
-
         self.epochs = epochs
         self.max_width = max_width
         self.augment_data_prob = augment_data_prob

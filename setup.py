@@ -1,7 +1,7 @@
 from setuptools import find_packages
 from setuptools import setup
 
-REQUIRED_PACKAGES = ['distance', 'numpy', 'six', 'pillow', 'opencv-python']
+REQUIRED_PACKAGES = ['distance', 'numpy', 'opencv-python', 'six', 'pillow']
 VERSION = '0.7.6'
 try:
     import pypandoc
