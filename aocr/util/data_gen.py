@@ -11,16 +11,7 @@ from PIL import Image
 from six import BytesIO as IO
 
 from .bucketdata import BucketData
-from .data_augmentation import (
-    add_random_padding,
-    add_random_lines,
-    crop_image,
-    modify_brightness,
-    modify_contrast,
-    modify_sharpness,
-    random_resize,
-    random_rotation,
-)
+from .data_augmentation import full_augmentation
 
 try:
     TFRecordDataset = tf.data.TFRecordDataset  # pylint: disable=invalid-name
@@ -59,12 +50,10 @@ class DataGen(object):
                  max_width=None):
         """
         :param annotation_fn:
-        :param lexicon_fn:
-        :param valid_target_len:
-        :param img_width_range: only needed for training set
-        :param word_len:
-        :param epochs:
+        :param buckets:
         :param augment_data_prob: probability of applying data augmentation functions on the sample
+        :param epochs:
+        :param max_width: 
         :return:
         """
         self.epochs = epochs
@@ -82,8 +71,21 @@ class DataGen(object):
     def clear(self):
         self.bucket_data = BucketData()
 
-    def gen(self, batch_size):
+    def _perform_augmentation(self, img, augmentation_fn, **kwargs):
+        # Convert images encoded as bytes to PIL.Image
+        img = Image.open(IO(img))
 
+        # Perform augmentation
+        img = augmentation_fn(img, **kwargs)
+
+        # Convert images back to bytes
+        iobytes = IO()
+        img.save(iobytes, 'JPEG')
+        img = iobytes.getvalue()
+
+        return img
+
+    def gen(self, batch_size):
         dataset = self.dataset.batch(batch_size)
         iterator = dataset.make_one_shot_iterator()
 
@@ -97,24 +99,7 @@ class DataGen(object):
 
                         # Augment specified percentage of data
                         if random.random() < self.augment_data_prob:
-
-                            # Convert images encoded as bytes to PIL.Image
-                            img = Image.open(IO(img))
-
-                            # Perform augmentation
-                            img = random_resize(img, max_width=self.max_width)
-                            img = modify_sharpness(img)
-                            img = modify_contrast(img)
-                            img = modify_brightness(img)
-                            img = add_random_padding(img)
-                            img = crop_image(img)
-                            img = add_random_lines(img)
-                            img = random_rotation(img)
-
-                            # Convert images back to bytes
-                            iobytes = IO()
-                            img.save(iobytes, 'JPEG')
-                            img = iobytes.getvalue()
+                            img = self._perform_augmentation(img, full_augmentation, max_width=self.max_width)
 
                         try:
                             word = self.convert_lex(lex)
