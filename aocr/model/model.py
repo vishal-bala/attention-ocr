@@ -289,7 +289,7 @@ class Model(object):
         num_correct = 0.0
         num_total = 0.0
 
-        s_gen = DataGen(data_path, self.buckets, epochs=1, max_width=self.max_original_width)
+        s_gen = DataGen(data_path, self.buckets, epochs=1, max_width=self.max_original_width, augment_data_prob=0.0)
         for batch in s_gen.gen(1):
             current_step += 1
             # Get a batch (one image) and make a step.
@@ -360,11 +360,14 @@ class Model(object):
                              probability,
                              correctness))
 
-    def train(self, data_path, num_epoch):
+    def train(self, data_path, num_epoch, augment_data_prob):
         logging.info('num_epoch: %d', num_epoch)
         s_gen = DataGen(
-            data_path, self.buckets,
-            epochs=num_epoch, max_width=self.max_original_width
+            data_path,
+            self.buckets,
+            epochs=num_epoch,
+            max_width=self.max_original_width,
+            augment_data_prob=augment_data_prob
         )
         step_time = 0.0
         loss = 0.0
