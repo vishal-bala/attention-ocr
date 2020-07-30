@@ -17,8 +17,8 @@ from .util import dataset
 from .util.data_gen import DataGen
 from .util.export import Exporter
 
-tf.logging.set_verbosity(tf.logging.ERROR)
-
+# tf.logging.set_verbosity(tf.logging.ERROR)
+tf.compat.v1.logging.set_verbosity(tf.logging.ERROR)
 
 def process_args(args, defaults):
 
