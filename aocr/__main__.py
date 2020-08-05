@@ -154,6 +154,10 @@ def process_args(args, defaults):
                               metavar=defaults.NUM_EPOCH,
                               help=('number of training epochs (default: %s)'
                                     % (defaults.NUM_EPOCH)))
+    parser_train.add_argument('--data-augmentation-prob', dest="augment_data_prob",
+                              type=int, default=defaults.DATA_AUGMENTATION_PROB,
+                              help=('probability of applying data augmentation functions to each sample (default: %s)'
+                                    % (defaults.DATA_AUGMENTATION_PROB)))
     parser_train.add_argument('--no-resume', dest='load_model', action='store_false',
                               help=('create a new model even if checkpoints already exist'))
 
@@ -254,7 +258,8 @@ def main(args=None):
         if parameters.phase == 'train':
             model.train(
                 data_path=parameters.dataset_path,
-                num_epoch=parameters.num_epoch
+                num_epoch=parameters.num_epoch,
+                augment_data_prob=parameters.augment_data_prob
             )
         elif parameters.phase == 'test':
             model.test(
