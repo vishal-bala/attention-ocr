@@ -39,11 +39,6 @@ def process_args(args, defaults):
                                help=('export format'
                                      ' (default: %s)'
                                      % (defaults.EXPORT_FORMAT)))
-    parser_base.add_argument('--export-path', dest='export_path', metavar='dir',
-                               type=str, default=defaults.EXPORT_PATH,
-                               help=('Directory to save the exported model to,'
-                                     'default=%s'
-                                     % (defaults.EXPORT_PATH)))
 
     # Dataset generation
     parser_dataset = subparsers.add_parser('dataset', parents=[parser_base],
@@ -192,7 +187,11 @@ def process_args(args, defaults):
     parser_export = subparsers.add_parser('export', parents=[parser_base, parser_model],
                                           help='Export the model with weights for production use.')
     parser_export.set_defaults(phase='export', steps_per_checkpoint=0, batch_size=1)
-
+    parser_export.add_argument('export_path', nargs='?', metavar='dir',
+                               type=str, default=defaults.EXPORT_PATH,
+                               help=('Directory to save the exported model to,'
+                                     'default=%s'
+                                     % (defaults.EXPORT_PATH)))
     # Predicting
     parser_predict = subparsers.add_parser('predict', parents=[parser_base, parser_model],
                                            help='Predict text from files (feed through stdin).')
