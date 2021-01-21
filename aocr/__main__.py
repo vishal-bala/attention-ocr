@@ -266,7 +266,8 @@ def main(args=None):
       
             if not parameters.save_checkpoints_only:
                 exporter = Exporter(model)
-                exporter.save(parameters.export_path, parameters.format)
+                exported_dir = f'{parameters.model_dir}/exported_model'
+                exporter.save(exported_dir, parameters.format)
                 return
       
         elif parameters.phase == 'test':
