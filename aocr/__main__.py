@@ -5,14 +5,14 @@
 
 from __future__ import absolute_import
 
-import sys
 import argparse
 import logging
+import sys
 
 import tensorflow as tf
 
-from .model.model import Model
 from .defaults import Config
+from .model.model import Model
 from .util import dataset
 from .util.data_gen import DataGen
 from .util.export import Exporter
@@ -33,6 +33,17 @@ def process_args(args, defaults):
                              type=str, default=defaults.LOG_PATH,
                              help=('log file path (default: %s)'
                                    % (defaults.LOG_PATH)))
+    parser_base.add_argument('--format', dest="format",
+                               type=str, default=defaults.EXPORT_FORMAT,
+                               choices=['frozengraph', 'savedmodel'],
+                               help=('export format'
+                                     ' (default: %s)'
+                                     % (defaults.EXPORT_FORMAT)))
+    parser_base.add_argument('--export-path', dest='export_path', metavar='dir',
+                               type=str, default=defaults.EXPORT_PATH,
+                               help=('Directory to save the exported model to,'
+                                     'default=%s'
+                                     % (defaults.EXPORT_PATH)))
 
     # Dataset generation
     parser_dataset = subparsers.add_parser('dataset', parents=[parser_base],
@@ -160,7 +171,9 @@ def process_args(args, defaults):
                                     % (defaults.DATA_AUGMENTATION_PROB)))
     parser_train.add_argument('--no-resume', dest='load_model', action='store_false',
                               help=('create a new model even if checkpoints already exist'))
-
+    parser_train.add_argument('--save-checkpoints-only', dest='save_checkpoints_only', action='store_true',
+                              help=('do not generate saved_model.pb file upon training end'))
+                
     # Testing
     parser_test = subparsers.add_parser('test', parents=[parser_base, parser_model],
                                         help='Test the saved model.')
@@ -174,22 +187,11 @@ def process_args(args, defaults):
                                    % (defaults.DATA_PATH)))
     parser_test.add_argument('--visualize', dest='visualize', action='store_true',
                              help=('visualize attentions'))
-
+                            
     # Exporting
     parser_export = subparsers.add_parser('export', parents=[parser_base, parser_model],
                                           help='Export the model with weights for production use.')
     parser_export.set_defaults(phase='export', steps_per_checkpoint=0, batch_size=1)
-    parser_export.add_argument('export_path', nargs='?', metavar='dir',
-                               type=str, default=defaults.EXPORT_PATH,
-                               help=('Directory to save the exported model to,'
-                                     'default=%s'
-                                     % (defaults.EXPORT_PATH)))
-    parser_export.add_argument('--format', dest="format",
-                               type=str, default=defaults.EXPORT_FORMAT,
-                               choices=['frozengraph', 'savedmodel'],
-                               help=('export format'
-                                     ' (default: %s)'
-                                     % (defaults.EXPORT_FORMAT)))
 
     # Predicting
     parser_predict = subparsers.add_parser('predict', parents=[parser_base, parser_model],
@@ -261,6 +263,12 @@ def main(args=None):
                 num_epoch=parameters.num_epoch,
                 augment_data_prob=parameters.augment_data_prob
             )
+      
+            if not parameters.save_checkpoints_only:
+                exporter = Exporter(model)
+                exporter.save(parameters.export_path, parameters.format)
+                return
+      
         elif parameters.phase == 'test':
             model.test(
                 data_path=parameters.dataset_path

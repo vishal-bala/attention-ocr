@@ -23,6 +23,7 @@ class Config(object):
     FORCE_UPPERCASE = True
     SAVE_FILENAME = False
     FULL_ASCII = False
+    SAVE_CHECKPOINTS_ONLY = False
 
     # Optimization
     NUM_EPOCH = 1000
