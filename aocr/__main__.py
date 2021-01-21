@@ -167,7 +167,7 @@ def process_args(args, defaults):
     parser_train.add_argument('--no-resume', dest='load_model', action='store_false',
                               help=('create a new model even if checkpoints already exist'))
     parser_train.add_argument('--save-checkpoints-only', dest='save_checkpoints_only', action='store_true',
-                              help=('do not generate saved_model.pb file upon training end'))
+                              help=('do not export model to saved_model/frozengraph format after training finishes'))
                 
     # Testing
     parser_test = subparsers.add_parser('test', parents=[parser_base, parser_model],
